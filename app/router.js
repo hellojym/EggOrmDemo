@@ -5,12 +5,15 @@
  */
 module.exports = app => {
   const { router, controller } = app;
-  router.get('/', controller.home.index);
-  router.get('/add', controller.home.add);
-  router.get('/modify', controller.home.modify);
-  router.get('/list', controller.home.list);
-  router.get('/destroy', controller.home.destroy);
 
+  //sequelize演示
+  router.get('/book', controller.book.index);
+  router.get('/book/add', controller.book.add);
+  router.get('/book/modify', controller.book.modify);
+  router.get('/book/list', controller.book.list);
+  router.get('/book/destroy', controller.book.destroy);
+
+  //mongoose演示
   router.get('/student/add', controller.student.add);
   router.get('/student/update', controller.student.update);
   router.get('/student/remove', controller.student.remove);
