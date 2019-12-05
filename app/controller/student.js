@@ -1,9 +1,12 @@
+'use strict';
+
 const Controller = require('egg').Controller;
 
 /**
  * 演示mongo的增删改查
  *
- * mongoose里面操作不返回promise对象而是一个Query，为了方便使用await，需要在async函数里用Promise手动包起来
+ * mongoose跟sequelize不同在于，它是通过回调来处理结果的，为了能够用await和async，需要将其包在Promise中，这样就能
+ * 在controller的函数中await它，从而等待其获取结果。
  */
 class StudentController extends Controller {
 
@@ -17,10 +20,10 @@ class StudentController extends Controller {
     try {
       const Student = ctx.model.Student;
       const s = new Student({
-        id: id,
-        name: name,
+        id,
+        name,
         age: 22,
-        subjects: [ 2, 4, 1, 6, 3 ]
+        subjects: [ 2, 4, 1, 6, 3 ],
       });
       ctx.body = await new Promise(resolve => {
         s.save((error, res) => {
@@ -41,7 +44,7 @@ class StudentController extends Controller {
     } catch (e) {
       ctx.body = {
         error: true,
-        msg: e
+        msg: e,
       };
     }
   }
@@ -49,7 +52,6 @@ class StudentController extends Controller {
 
   /**
    * 通过id查找记录
-   * @returns {Promise<void>}
    */
   async find() {
     const ctx = this.ctx;
@@ -57,7 +59,7 @@ class StudentController extends Controller {
     const Student = this.ctx.model.Student;
     ctx.body = await new Promise(resolve => {
       Student.findOne({
-        id: id
+        id,
       }, (err, res) => {
         if (res) {
           resolve({
@@ -67,7 +69,7 @@ class StudentController extends Controller {
         } else {
           resolve({
             error_code: 400,
-            data: err
+            data: err,
           });
         }
       });
@@ -77,16 +79,12 @@ class StudentController extends Controller {
 
   /**
    * 返回年龄符合的list
-   * @returns {Promise<void>}
    */
   async list() {
     const ctx = this.ctx;
-    const age = ctx.query.age;
     const Student = this.ctx.model.Student;
     ctx.body = await new Promise(resolve => {
-      Student.find({
-        age: age,
-      }, (err, res) => {
+      Student.find({}, (err, res) => {
         if (res) {
           resolve({
             error_code: 200,
@@ -95,7 +93,7 @@ class StudentController extends Controller {
         } else {
           resolve({
             error_code: 400,
-            data: err
+            data: err,
           });
         }
       });
@@ -105,15 +103,15 @@ class StudentController extends Controller {
 
 
   /**
-   * 更新 晓明的age
-   * @returns {Promise<void>}
+   * 更新id对应学生的的age
    */
   async update() {
     const ctx = this.ctx;
     const age = ctx.query.age;
+    const id = ctx.query.id;
     const Student = this.ctx.model.Student;
     this.ctx.body = await new Promise(resolve => {
-      Student.findOneAndUpdate({ name: '晓明' }, { age: age }, (err, res) => {
+      Student.findOneAndUpdate({ id }, { age }, (err, res) => {
         if (res) {
           resolve({
             error_msg: 'ok',
@@ -126,19 +124,16 @@ class StudentController extends Controller {
   }
 
   /**
-   * 删除所有年龄为22岁的记录
-   * @returns {Promise<void>}
+   * 删除所有记录
    */
   async removeAll() {
     const Student = this.ctx.model.Student;
     this.ctx.body = await new Promise(resolve => {
-      Student.deleteMany({
-        age: '22'
-      }, (err, res) => {
+      Student.deleteMany({}, (err, res) => {
         if (res) {
           resolve({
             error_code: 3,
-            error_msg: 'cleared'
+            error_msg: 'cleared',
           });
         }
       });
@@ -147,7 +142,6 @@ class StudentController extends Controller {
 
   /**
    * 通过id删除单个记录
-   * @returns {Promise<void>}
    */
   async remove() {
     const ctx = this.ctx;
@@ -155,13 +149,13 @@ class StudentController extends Controller {
     const id = ctx.query.id;
     ctx.body = await new Promise(resolve => {
       Student.findOne({
-        id: id
+        id,
       }, (err, res) => {
         res.remove((err, res) => {
           if (res) {
             resolve({
               error_code: 3,
-              error_msg: res
+              error_msg: res,
             });
           }
         });
